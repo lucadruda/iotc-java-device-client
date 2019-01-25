@@ -1,7 +1,7 @@
 ### Azure IoT Central Java SDK Documentation
 
 [![Join the chat at https://gitter.im/iotdisc/community](https://badges.gitter.im/iotdisc.svg)](https://gitter.im/iotdisc/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Licensed under the MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/obastemur/iot_client/blob/master/LICENSE.md)
+[![Licensed under the MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/lucadruda/iotc-java-device-client/blob/master/LICENSE)
 
 #### Prerequisites
 
@@ -34,9 +34,9 @@ _This is the recommended method of including the Azure IoTCentral SDK in your pr
 ```
 
 ### Build Azure IoTCentral device SDK for Java from the source code
-* Get a copy of the **Azure IoTCentral SDK for Java** from GitHub (current repo). You should fetch a copy of the source from the **master** branch of the GitHub repository: <https://github.com/lucadruda/iotc_java_device_client>
+* Get a copy of the **Azure IoTCentral SDK for Java** from GitHub (current repo). You should fetch a copy of the source from the **master** branch of the GitHub repository: <https://github.com/lucadruda/iotc-java-device-client>
 ```
-	git clone https://github.com/lucadruda/iotc_java_device_client.git
+	git clone https://github.com/lucadruda/iotc-java-device-client.git
 ```
 * When you have obtained a copy of the source, you can build the SDK for Java.
 * Open a command prompt and use the following commands:
