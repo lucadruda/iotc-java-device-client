@@ -34,28 +34,25 @@ _This is the recommended method of including the Azure IoTCentral SDK in your pr
 ```
 
 ### Build Azure IoTCentral device SDK for Java from the source code
-* Get a copy of the **Azure IoTCentral SDK for Java** from GitHub (current repo). You should fetch a copy of the source from the **master** branch of the GitHub repository: <https://github.com/Azure/iotc_connect>
+* Get a copy of the **Azure IoTCentral SDK for Java** from GitHub (current repo). You should fetch a copy of the source from the **master** branch of the GitHub repository: <https://github.com/lucadruda/iotc_java_device_client>
 ```
-	git clone https://https://github.com/Azure/iotc_connect.git
+	git clone https://github.com/lucadruda/iotc_java_device_client.git
 ```
 * When you have obtained a copy of the source, you can build the SDK for Java.
-* Java SDK is contained in the "JAVA_SDK" folder
-
 * Open a command prompt and use the following commands:
 ```
-	cd JAVA_SDK
 	mvn install
 ```
 The compiled JAR file with all dependencies bundled in can then be found at:
 ```
-{IoTCentral SDK for Java root}/device/iot-device-client/target/iotcentral-device-client-{version}-with-dependencies.jar
+{IoTCentral SDK for Java root}/target/iotcentral-device-client-{version}-with-dependencies.jar
 ```
 When you're ready to use the Java device SDK in your own project, include this JAR file in your project.
 
 #### Usage
 
 ```
-import com.microsoft.azure.sdk.iotcentral.IoTCClient;
+import com.microsoft.azure.sdk.iotcentral.device.IoTCClient;
 import com.microsoft.azure.sdk.iotcentral.device.enums.IOTC_CONNECT;
 
 IoTCClient client=new IoTCClient(deviceId,scopeId, credType, credentials);
@@ -174,7 +171,7 @@ client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
             }
         });
 ```
-Command special behavior:
+Command management:
 
 *after receiveing commands, it's possible to send operation progress back to the application as a property. Use the "Command" class for easy implementation*
 
@@ -197,6 +194,30 @@ client.on(IOTC_EVENTS.Command, new IoTCCallback() {
 ```
 *getResponseObject(value-to-send) returns a compatible object to be used by SendProperty*
 
+
+
+Setting management:
+
+*after receiveing setting, you can acknowledge successfull synchronization in the device by sending a property back to the service. Use the "Setting" class for easy implementation*
+
+```
+client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
+
+            @Override
+            public void Exec(Object result) {
+                Setting setting = null;
+                if (result instanceof Setting) {
+                    setting = (Setting) result;
+                }
+                try {
+                    client.SendProperty(setting.getResponseObject("Synced"), null);
+                } catch (IoTCentralException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+```
+*getResponseObject(value-to-send) returns a compatible object to be used by SendProperty*
 
 ##### callback info class
 
