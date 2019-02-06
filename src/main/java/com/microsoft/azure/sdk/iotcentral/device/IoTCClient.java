@@ -68,7 +68,7 @@ public class IoTCClient implements IIoTCClient {
     }
 
     /**
-     * @param logger the logger to set
+     * @param logLevel the logger to set
      */
     public void SetLogging(IOTC_LOGGING logLevel) {
         this.logger.SetLevel(logLevel);
