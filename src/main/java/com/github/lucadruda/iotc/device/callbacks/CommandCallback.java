@@ -1,13 +1,13 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device.callbacks;
+package com.github.lucadruda.iotc.device.callbacks;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodCallback;
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodData;
-import com.microsoft.azure.sdk.iotcentral.device.Command;
+import com.github.lucadruda.iotc.device.Command;
 
 public class CommandCallback implements DeviceMethodCallback {
     private List<IoTCCallback> callbacks;

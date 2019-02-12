@@ -1,7 +1,7 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-package tests.unit.com.microsoft.azure.sdk.iotcentral.device;
+package tests.unit.com.github.lucadruda.iotc.device;
 
 import org.junit.Test;
 
@@ -9,7 +9,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.microsoft.azure.sdk.iotcentral.device.Command;
+import com.github.lucadruda.iotc.device.Command;
 
 import static org.junit.Assert.*;
 

@@ -1,15 +1,15 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device;
+package com.github.lucadruda.iotc.device;
 
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.CommandCallback;
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.ConnectionStatus;
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.DeviceTwinStatusCallback;
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.EventCallback;
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.IoTCCallback;
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.SettingsCallback;
-import com.microsoft.azure.sdk.iotcentral.device.enums.*;
-import com.microsoft.azure.sdk.iotcentral.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.callbacks.CommandCallback;
+import com.github.lucadruda.iotc.device.callbacks.ConnectionStatus;
+import com.github.lucadruda.iotc.device.callbacks.DeviceTwinStatusCallback;
+import com.github.lucadruda.iotc.device.callbacks.EventCallback;
+import com.github.lucadruda.iotc.device.callbacks.IoTCCallback;
+import com.github.lucadruda.iotc.device.callbacks.SettingsCallback;
+import com.github.lucadruda.iotc.device.enums.*;
+import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
 
 import java.io.IOException;
 import java.net.Authenticator;

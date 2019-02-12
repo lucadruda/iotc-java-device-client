@@ -1,6 +1,6 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device.callbacks;
+package com.github.lucadruda.iotc.device.callbacks;
 
 import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubStatusCode;

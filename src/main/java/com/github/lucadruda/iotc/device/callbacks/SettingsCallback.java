@@ -1,13 +1,13 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device.callbacks;
+package com.github.lucadruda.iotc.device.callbacks;
 
 import java.util.List;
 
 import com.microsoft.azure.sdk.iot.deps.twin.TwinCollection;
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.Property;
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.TwinPropertyCallBack;
-import com.microsoft.azure.sdk.iotcentral.device.Setting;
+import com.github.lucadruda.iotc.device.Setting;
 
 public class SettingsCallback implements TwinPropertyCallBack {
     private List<IoTCCallback> callbacks;

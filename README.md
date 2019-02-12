@@ -52,8 +52,8 @@ When you're ready to use the Java device SDK in your own project, include this J
 #### Usage
 
 ```
-import com.microsoft.azure.sdk.iotcentral.device.IoTCClient;
-import com.microsoft.azure.sdk.iotcentral.device.enums.IOTC_CONNECT;
+import com.github.lucadruda.iotc.device.IoTCClient;
+import com.github.lucadruda.iotc.device.enums.IOTC_CONNECT;
 
 IoTCClient client=new IoTCClient(deviceId,scopeId, credType, credentials);
 ```

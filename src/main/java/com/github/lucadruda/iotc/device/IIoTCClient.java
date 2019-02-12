@@ -1,10 +1,10 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device;
+package com.github.lucadruda.iotc.device;
 
-import com.microsoft.azure.sdk.iotcentral.device.callbacks.IoTCCallback;
-import com.microsoft.azure.sdk.iotcentral.device.enums.*;
-import com.microsoft.azure.sdk.iotcentral.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.callbacks.IoTCCallback;
+import com.github.lucadruda.iotc.device.enums.*;
+import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
 
 public interface IIoTCClient {
     /**

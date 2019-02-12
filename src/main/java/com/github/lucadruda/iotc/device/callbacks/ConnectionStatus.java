@@ -1,13 +1,13 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device.callbacks;
+package com.github.lucadruda.iotc.device.callbacks;
 
 import java.util.List;
 
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeReason;
 import com.microsoft.azure.sdk.iot.device.transport.IotHubConnectionStatus;
-import com.microsoft.azure.sdk.iotcentral.device.enums.IOTC_CONNECTION_STATE;
+import com.github.lucadruda.iotc.device.enums.IOTC_CONNECTION_STATE;
 
 public class ConnectionStatus implements IotHubConnectionStatusChangeCallback {
     private List<IoTCCallback> callbacks;

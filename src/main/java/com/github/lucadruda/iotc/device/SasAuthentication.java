@@ -1,6 +1,6 @@
 // Copyright (c) Luca Druda. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-package com.microsoft.azure.sdk.iotcentral.device;
+package com.github.lucadruda.iotc.device;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -21,8 +21,8 @@ import com.microsoft.azure.sdk.iot.deps.util.Base64;
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.auth.Signature;
-import com.microsoft.azure.sdk.iotcentral.device.enums.IOTC_CONNECTION_STATE;
-import com.microsoft.azure.sdk.iotcentral.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.enums.IOTC_CONNECTION_STATE;
+import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
 
 public class SasAuthentication {
 
