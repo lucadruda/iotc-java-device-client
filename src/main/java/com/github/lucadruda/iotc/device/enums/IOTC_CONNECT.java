@@ -3,5 +3,5 @@
 package com.github.lucadruda.iotc.device.enums;
 
 public enum IOTC_CONNECT {
-    SYMM_KEY, X509_CERT
+    SYMM_KEY,DEVICE_KEY, X509_CERT
 }

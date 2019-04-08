@@ -31,28 +31,34 @@ public class SasAuthentication {
     private String endpoint;
     private String id;
     private String scopeId;
-    private String symKey;
     private ILogger logger;
     IotHubClientProtocol protocol;
 
-    public SasAuthentication(String endpoint, IotHubClientProtocol protocol, String id, String scopeId, String symKey,
+    public SasAuthentication(String endpoint, IotHubClientProtocol protocol, String id, String scopeId,
             ILogger logger) {
         this.endpoint = endpoint;
         this.id = id;
         this.scopeId = scopeId;
-        this.symKey = symKey;
         this.logger = logger;
         this.protocol = protocol;
 
     }
 
-    public DeviceClient Register() throws IoTCentralException {
-        if (this.scopeId == null || this.scopeId.length() == 0 || this.symKey == null || this.symKey.length() == 0
+    public DeviceClient RegisterWithSaSKey(String symKey) throws IoTCentralException {
+        if (this.scopeId == null || this.scopeId.length() == 0 || symKey == null || symKey.length() == 0
+                || this.id == null || this.id.length() == 0) {
+            throw new IoTCentralException("Wrong credentials values");
+        }
+        return this.RegisterWithDeviceKey(this.ComputeKey(symKey, this.id));
+    }
+
+    public DeviceClient RegisterWithDeviceKey(String deviceKey) throws IoTCentralException {
+        if (this.scopeId == null || this.scopeId.length() == 0 || deviceKey == null || deviceKey.length() == 0
                 || this.id == null || this.id.length() == 0) {
             throw new IoTCentralException("Wrong credentials values");
         }
         long time = (System.currentTimeMillis() / 1000 | 0) + DEFAULT_EXPIRATION;
-        String deviceKey = this.ComputeKey(this.symKey, this.id);
+
         Signature sig = new Signature(this.scopeId + "%2fregistrations%2f" + this.id, time, deviceKey);
         String sasKey = String.format(
                 "SharedAccessSignature sr=%s%%2fregistrations%%2f%s&sig=%s&skn=registration&se=%s", this.scopeId,

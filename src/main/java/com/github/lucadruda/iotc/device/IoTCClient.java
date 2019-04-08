@@ -114,8 +114,11 @@ public class IoTCClient implements IIoTCClient {
 
     private DeviceClient Register() throws IoTCentralException {
         if (this.authenticationType == IOTC_CONNECT.SYMM_KEY) {
-            return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.sasKey, this.logger)
-                    .Register();
+            return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.logger)
+                    .RegisterWithSaSKey(this.sasKey);
+        } else if (this.authenticationType == IOTC_CONNECT.DEVICE_KEY) {
+            return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.logger)
+                    .RegisterWithDeviceKey(this.sasKey);
         }
         return new CertAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.certificate,
                 this.logger).Register();
