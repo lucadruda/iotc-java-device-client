@@ -50,7 +50,7 @@ The compiled JAR file with all dependencies bundled in can then be found at:
 When you're ready to use the Java device SDK in your own project, include this JAR file in your project.
 
 ## API reference
-* [Azure IoTCentral Device SDK](target/site/apidocs/index.html)
+* [Azure IoTCentral Device SDK](https://lucadruda.github.io/iotc-java-device-client/index.html)
 
 
 ### Usage

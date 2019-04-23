@@ -19,6 +19,7 @@ public class EventCallback implements IotHubEventCallback {
     public void execute(IotHubStatusCode responseStatus, Object callbackContext) {
         if (this.callback != null) {
             if (!responseStatus.equals(IotHubStatusCode.OK)) {
+                //TODO handle success event
                 this.callback.Exec(responseStatus.toString());
             } else {
                 this.callback.Exec(responseStatus.toString());
