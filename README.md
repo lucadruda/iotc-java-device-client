@@ -28,7 +28,7 @@ _This is the recommended method of including the Azure IoTCentral SDK in your pr
 	<dependency>
         <groupId>com.github.lucadruda</groupId>
         <artifactId>iotc-java-device-client</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
 		<!--This is the current version number as of the writing of this document. Yours may be different.-->
 	</dependency>
 ```
@@ -48,6 +48,10 @@ The compiled JAR file with all dependencies bundled in can then be found at:
 {IoTCentral SDK for Java root}/target/iotcentral-device-client-{version}-with-dependencies.jar
 ```
 When you're ready to use the Java device SDK in your own project, include this JAR file in your project.
+
+#### API reference
+* [Azure IoTCentral Device SDK](https://github.com/lucadruda/iotc-java-device-client/target/site/index.html)
+
 
 #### Usage
 

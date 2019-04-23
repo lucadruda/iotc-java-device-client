@@ -5,7 +5,7 @@
 
   <groupId>com.github.lucadruda</groupId>
   <artifactId>iotc-java-device-client</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <name>Azure IoTCentral Device Client</name>
   <url>https://github.com/lucadruda/iotc-java-device-client</url>
   <description>The Azure IoTCentral Device client for Java and Android</description>
