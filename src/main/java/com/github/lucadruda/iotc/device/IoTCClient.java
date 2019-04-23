@@ -46,6 +46,15 @@ public class IoTCClient implements IIoTCClient {
 
     private HashMap<IOTC_EVENTS, List<IoTCCallback>> callbacks;
 
+    /**
+     * 
+     * @param id                 The device Id
+     * @param scopeId            Scope Id of the application
+     * @param authenticationType Type of authentication: It can be Group symmetric
+     *                           key, Device SAS key or x.509
+     * @param options            Value for authentication: keys for symmetric and
+     *                           SAS key authentication or x.509 certificate
+     */
     public IoTCClient(String id, String scopeId, IOTC_CONNECT authenticationType, Object options) {
         this.logger = new ConsoleLogger();
         this.id = id;
@@ -62,6 +71,16 @@ public class IoTCClient implements IIoTCClient {
         this.callbacks.put(IOTC_EVENTS.ConnectionStatus, new ArrayList<IoTCCallback>());
     }
 
+    /**
+     * 
+     * @param id                 The device Id
+     * @param scopeId            Scope Id of the application
+     * @param authenticationType Type of authentication: It can be Group symmetric
+     *                           key, Device SAS key or x.509
+     * @param options            Value for authentication: keys for symmetric and
+     *                           SAS key authentication or x.509 certificate
+     * @param logger             A custom logger implementing the ILogger interface
+     */
     public IoTCClient(String id, String scopeId, IOTC_CONNECT authenticationType, Object options, ILogger logger) {
         this(id, scopeId, authenticationType, options);
         this.logger = logger;
@@ -112,6 +131,11 @@ public class IoTCClient implements IIoTCClient {
         }
     }
 
+    /**
+     * Register a device in IoTCentral using authentication provided at construction time
+     * @return DeviceClient instance
+     * @throws IoTCentralException
+     */
     private DeviceClient Register() throws IoTCentralException {
         if (this.authenticationType == IOTC_CONNECT.SYMM_KEY) {
             return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.logger)

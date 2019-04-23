@@ -22,13 +22,13 @@ There are two ways to get the .jar libraries for the Azure IoT Central device SD
 _This is the recommended method of including the Azure IoTCentral SDK in your project, however this method will only work if your project is a Maven project and if you have gone through the setup described above_
 
 
-* Navigate to http://search.maven.org, search for **com.microsoft.azure.sdk.iotcentral** and take note of the latest version number (or the version number of whichever version of the sdk you desire to use).
+* Navigate to http://search.maven.org, search for **com.github.lucadruda.iotc** and take note of the latest version number (or the version number of whichever version of the sdk you desire to use).
 * In your main pom.xml file, add the Azure IoT Device SDK as a dependency using your desired version as follows:
 ```xml
 	<dependency>
-		<groupId>com.microsoft.azure.sdk.iotcentral</groupId>
-		<artifactId>iotcentral-device-client</artifactId>
-		<version>1.0.0</version>
+        <groupId>com.github.lucadruda</groupId>
+        <artifactId>iotc-java-device-client</artifactId>
+        <version>1.0.3</version>
 		<!--This is the current version number as of the writing of this document. Yours may be different.-->
 	</dependency>
 ```
@@ -59,7 +59,7 @@ IoTCClient client=new IoTCClient(deviceId,scopeId, credType, credentials);
 ```
 *deviceId*   : Device ID
 *scopeId*    : IoT Central Scope ID
-*credType*   : IOTC_CONNECT => `IOTC_CONNECT.SYMM_KEY` or `IOTC_CONNECT_X509_CERT`
+*credType*   : IOTC_CONNECT => `IOTC_CONNECT.SYMM_KEY` or `IOTC_CONNECT.DEVICE_KEY` or `IOTC_CONNECT_X509_CERT`
 *credentials*  : SAS key or x509 Certificate
 
 
@@ -91,14 +91,14 @@ client.SetGlobalEndpoint(url)
 \**call this before connect*
 
 ##### Connect
-connect device client
+Connect device client. It returns if successfull or throws exception if connection fails.
 
 ```
 client.Connect()
 ```
 
 ##### SendTelemetry
-send telemetry
+Sends telemetry
 
 ```
 client.SendTelemetry(payload,[callback])
@@ -110,7 +110,7 @@ i.e. `client.SendTelemetry(new Sample(24))`
 where Sample is a class with public properties.
 
 ##### SendState
-send device state
+Sends device state
 
 ```
 client.SendState(payload)
@@ -122,7 +122,7 @@ i.e. `client.SendState(new Flag("on"))`
 where Flag is a class with public properties.
 
 ##### SendProperty
-send a property
+Sends a property
 
 ```
 client.SendProperty(payload)

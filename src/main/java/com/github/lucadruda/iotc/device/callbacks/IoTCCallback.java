@@ -3,7 +3,10 @@
 package com.github.lucadruda.iotc.device.callbacks;
 
 public abstract class IoTCCallback {
-
+    /**
+     * Execute the callback
+     * @param result result of the operation triggering the callback
+     */
     public abstract void Exec(Object result);
 
 }

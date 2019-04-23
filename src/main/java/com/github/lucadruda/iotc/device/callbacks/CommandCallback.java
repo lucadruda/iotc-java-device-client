@@ -9,6 +9,7 @@ import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodCallback;
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodData;
 import com.github.lucadruda.iotc.device.Command;
 
+
 public class CommandCallback implements DeviceMethodCallback {
     private List<IoTCCallback> callbacks;
 
