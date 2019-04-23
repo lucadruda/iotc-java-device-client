@@ -51,7 +51,7 @@ public class IoTCClient implements IIoTCClient {
         this.id = id;
         this.scopeId = scopeId;
         this.authenticationType = authenticationType;
-        if (this.authenticationType == IOTC_CONNECT.SYMM_KEY) {
+        if (this.authenticationType == IOTC_CONNECT.SYMM_KEY || this.authenticationType == IOTC_CONNECT.DEVICE_KEY) {
             this.sasKey = (String) options;
         } else if (this.authenticationType == IOTC_CONNECT.X509_CERT) {
             this.certificate = (IoTCentralCert) options;
