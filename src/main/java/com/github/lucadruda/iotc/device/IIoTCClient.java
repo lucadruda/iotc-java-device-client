@@ -25,6 +25,12 @@ public interface IIoTCClient {
     public void SetGlobalEndpoint(String endpoint);
 
     /**
+     * Set DPS API version. Default is "2018-09-01-preview"
+     * @param apiversion the api version to set
+     */
+    public void SetDPSApiVersion(String apiversion);
+
+    /**
      * Set network proxy Must be called before Connect(). Default: no proxy
      * 
      * @param options Proxy options

@@ -94,6 +94,16 @@ client.SetGlobalEndpoint(url)
 
 \**call this before connect*
 
+##### SetApiVersion
+Change the provisioning service API version
+```
+client.SetApiVersion(apiVersion)
+```
+
+*apiVersion*    : API version for service endpoint. (default value is `2018-09-01-preview`)
+
+\**call this before connect*
+
 ##### Connect
 Connect device client. It returns if successfull or throws exception if connection fails.
 
@@ -227,3 +237,28 @@ client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
 
 `iotc` client callbacks are instances of `IoTCCallback` or its derivates.
 Must override "Exec" method.
+
+## One-touch device provisioning and approval (only for SAS authentication) - Preview
+A device can send custom data during provision process: if a device is aware of its IoT Central template Id, then it can be automatically provisioned.
+
+### How to set IoTC template ID in your device
+Template Id can be found in the device explorer page of IoTCentral
+![Img](assets/modelId.jpg)
+
+Then initialize client passing the model and setting the right API version
+
+_IoTCClient client = new IoTCClient(deviceId, templateId, scopeId, credType, credentials);_
+_client.SetApiVersion("2019-01-15");_
+
+
+### Manual approval (default)
+By default device auto-approval in IoT Central is disabled, which means that administrator needs to approve the device registration to complete the provisioning process.
+This can be done from explorer page after selecting the device
+![Img](assets/manual_approval.jpg)
+
+
+### Automatic approval
+To change default behavior, administrator can enable device auto-approval from Device Connection page under the Administration section.
+With automatic approval a device can be provisioned without any manual action and can start sending/receiving data after status changes to "Provisioned"
+
+![Img](assets/auto_approval.jpg)

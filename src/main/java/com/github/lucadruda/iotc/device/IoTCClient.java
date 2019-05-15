@@ -33,11 +33,14 @@ public class IoTCClient implements IIoTCClient {
 
     final int DEFAULT_EXPIRATION = 21600;
     final String DPS_DEFAULT_ENDPOINT = "global.azure-devices-provisioning.net";
+    final String DPS_DEFAULT_API = "2018-09-01-preview";
 
     private String endpoint = DPS_DEFAULT_ENDPOINT;
+    private String apiVersion = DPS_DEFAULT_API;
     private ILogger logger;
     private String id;
     private String scopeId;
+    private String modelId;
     private IOTC_CONNECT authenticationType;
     private String sasKey;
     private IoTCentralCert certificate;
@@ -72,6 +75,18 @@ public class IoTCClient implements IIoTCClient {
     }
 
     /**
+     * @return the modelId
+     */
+    public String getModelId() {
+        return modelId;
+    }
+
+    public IoTCClient(String id, String modelId, String scopeId, IOTC_CONNECT authenticationType, Object options) {
+        this(id, scopeId, authenticationType, options);
+        this.modelId = modelId;
+    }
+
+    /**
      * 
      * @param id                 The device Id
      * @param scopeId            Scope Id of the application
@@ -84,6 +99,12 @@ public class IoTCClient implements IIoTCClient {
     public IoTCClient(String id, String scopeId, IOTC_CONNECT authenticationType, Object options, ILogger logger) {
         this(id, scopeId, authenticationType, options);
         this.logger = logger;
+    }
+
+    public IoTCClient(String id, String modelId, String scopeId, IOTC_CONNECT authenticationType, Object options,
+            ILogger logger) {
+        this(id, scopeId, authenticationType, options, logger);
+        this.modelId = modelId;
     }
 
     /**
@@ -132,17 +153,17 @@ public class IoTCClient implements IIoTCClient {
     }
 
     /**
-     * Register a device in IoTCentral using authentication provided at construction time
+     * Register a device in IoTCentral using authentication provided at construction
+     * time
+     * 
      * @return DeviceClient instance
      * @throws IoTCentralException
      */
     private DeviceClient Register() throws IoTCentralException {
         if (this.authenticationType == IOTC_CONNECT.SYMM_KEY) {
-            return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.logger)
-                    .RegisterWithSaSKey(this.sasKey);
+            return new SasAuthentication(this).RegisterWithSaSKey(this.sasKey);
         } else if (this.authenticationType == IOTC_CONNECT.DEVICE_KEY) {
-            return new SasAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.logger)
-                    .RegisterWithDeviceKey(this.sasKey);
+            return new SasAuthentication(this).RegisterWithDeviceKey(this.sasKey);
         }
         return new CertAuthentication(this.endpoint, this.protocol, this.id, this.scopeId, this.certificate,
                 this.logger).Register();
@@ -232,6 +253,82 @@ public class IoTCClient implements IIoTCClient {
         default:
             break;
         }
+    }
+
+    @Override
+    public void SetDPSApiVersion(String apiversion) {
+        this.apiVersion = apiversion;
+        this.logger.Log("API version changed to: " + apiversion);
+    }
+
+    /**
+     * @return the endpoint
+     */
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    /**
+     * @return the apiVersion
+     */
+    public String getApiVersion() {
+        return apiVersion;
+    }
+
+    /**
+     * @return the logger
+     */
+    public ILogger getLogger() {
+        return logger;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @return the scopeId
+     */
+    public String getScopeId() {
+        return scopeId;
+    }
+
+    /**
+     * @return the authenticationType
+     */
+    public IOTC_CONNECT getAuthenticationType() {
+        return authenticationType;
+    }
+
+    /**
+     * @return the sasKey
+     */
+    public String getSasKey() {
+        return sasKey;
+    }
+
+    /**
+     * @return the certificate
+     */
+    public IoTCentralCert getCertificate() {
+        return certificate;
+    }
+
+    /**
+     * @return the protocol
+     */
+    public IotHubClientProtocol getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * @return the deviceClient
+     */
+    public DeviceClient getDeviceClient() {
+        return deviceClient;
     }
 
 }
