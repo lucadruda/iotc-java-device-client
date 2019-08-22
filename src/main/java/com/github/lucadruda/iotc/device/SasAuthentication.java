@@ -28,46 +28,38 @@ public class SasAuthentication {
 
     final int DEFAULT_EXPIRATION = 21600; // 6 hours
 
-    private String endpoint;
-    private String id;
-    private String scopeId;
-    private ILogger logger;
-    IotHubClientProtocol protocol;
+    private IoTCClient client;
 
-    public SasAuthentication(String endpoint, IotHubClientProtocol protocol, String id, String scopeId,
-            ILogger logger) {
-        this.endpoint = endpoint;
-        this.id = id;
-        this.scopeId = scopeId;
-        this.logger = logger;
-        this.protocol = protocol;
+    public SasAuthentication(IoTCClient client) {
+        this.client = client;
 
     }
 
     public DeviceClient RegisterWithSaSKey(String symKey) throws IoTCentralException {
-        if (this.scopeId == null || this.scopeId.length() == 0 || symKey == null || symKey.length() == 0
-                || this.id == null || this.id.length() == 0) {
+        if (this.client.getScopeId() == null || this.client.getScopeId().length() == 0 || symKey == null
+                || symKey.length() == 0 || this.client.getId() == null || this.client.getId().length() == 0) {
             throw new IoTCentralException("Wrong credentials values");
         }
-        return this.RegisterWithDeviceKey(this.ComputeKey(symKey, this.id));
+        return this.RegisterWithDeviceKey(this.ComputeKey(symKey, this.client.getId()));
     }
 
     public DeviceClient RegisterWithDeviceKey(String deviceKey) throws IoTCentralException {
-        if (this.scopeId == null || this.scopeId.length() == 0 || deviceKey == null || deviceKey.length() == 0
-                || this.id == null || this.id.length() == 0) {
+        if (this.client.getScopeId() == null || this.client.getScopeId().length() == 0 || deviceKey == null
+                || deviceKey.length() == 0 || this.client.getId() == null || this.client.getId().length() == 0) {
             throw new IoTCentralException("Wrong credentials values");
         }
         long time = (System.currentTimeMillis() / 1000 | 0) + DEFAULT_EXPIRATION;
 
-        Signature sig = new Signature(this.scopeId + "%2fregistrations%2f" + this.id, time, deviceKey);
+        Signature sig = new Signature(this.client.getScopeId() + "%2fregistrations%2f" + this.client.getId(), time,
+                deviceKey);
         String sasKey = String.format(
-                "SharedAccessSignature sr=%s%%2fregistrations%%2f%s&sig=%s&skn=registration&se=%s", this.scopeId,
-                this.id, sig.toString(), time);
+                "SharedAccessSignature sr=%s%%2fregistrations%%2f%s&sig=%s&skn=registration&se=%s",
+                this.client.getScopeId(), this.client.getId(), sig.toString(), time);
         String operationId = this.RequestRegistration(sasKey);
         String connectionString = this.GetAssignment(deviceKey, sasKey, operationId);
         DeviceClient client;
         try {
-            client = new DeviceClient(connectionString, protocol);
+            client = new DeviceClient(connectionString, this.client.getProtocol());
             return client;
         } catch (IllegalArgumentException | URISyntaxException e) {
             throw new IoTCentralException("Invalid connection string: " + connectionString);
@@ -77,12 +69,13 @@ public class SasAuthentication {
 
     private String RequestRegistration(String sasKey) throws IoTCentralException {
         try {
-            URL url = new URL(String.format("https://%s/%s/registrations/%s/register?api-version=2018-09-01-preview",
-                    this.endpoint, this.scopeId, this.id));
+            URL url = new URL(
+                    String.format("https://%s/%s/registrations/%s/register?api-version=%s", this.client.getEndpoint(),
+                            this.client.getScopeId(), this.client.getId(), this.client.getApiVersion()));
             HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
             con.setRequestMethod("PUT");
             con.setRequestProperty("Accept", "application/json");
-            con.setRequestProperty("Host", this.endpoint);
+            con.setRequestProperty("Host", this.client.getEndpoint());
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("charset", "utf-8");
             con.setRequestProperty("Connection", "keep-alive");
@@ -90,7 +83,12 @@ public class SasAuthentication {
             con.setRequestProperty("Authorization", sasKey);
             con.setDoOutput(true);
             DataOutputStream os = new DataOutputStream(con.getOutputStream());
-            os.writeBytes("{\"registrationId\":\"" + this.id + "\"}");
+            if (this.client.getModelId() != null || this.client.getModelId().length() != 0) {
+                os.writeBytes(String.format("{\"registrationId\":\"%s\",\"data\":{\"iotcModelId\":\"%s\"}}",
+                        this.client.getId(), this.client.getModelId()));
+            } else {
+                os.writeBytes(String.format("{\"registrationId\":\"%s\"}", this.client.getId()));
+            }
             os.flush();
             os.close();
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -113,13 +111,13 @@ public class SasAuthentication {
 
     private String GetAssignment(String deviceKey, String sasKey, String operationId) throws IoTCentralException {
         try {
-            URL url = new URL(
-                    String.format("https://%s/%s/registrations/%s/operations/%s?api-version=2018-09-01-preview",
-                            this.endpoint, this.scopeId, this.id, operationId));
+            URL url = new URL(String.format("https://%s/%s/registrations/%s/operations/%s?api-version=%s",
+                    this.client.getEndpoint(), this.client.getScopeId(), this.client.getId(), operationId,
+                    this.client.getApiVersion()));
             HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Accept", "application/json");
-            con.setRequestProperty("Host", this.endpoint);
+            con.setRequestProperty("Host", this.client.getEndpoint());
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("charset", "utf-8");
             con.setRequestProperty("Connection", "keep-alive");
@@ -134,13 +132,13 @@ public class SasAuthentication {
             in.close();
             JsonObject data = (JsonObject) new JsonParser().parse(content.toString());
             if (data.get("status").getAsString().equals("assigned")) {
-                this.logger.Log("Device registered");
+                this.client.getLogger().Log("Device registered");
                 JsonObject registrationState = (JsonObject) data.get("registrationState");
                 return String.format("HostName=%s;DeviceId=%s;SharedAccessKey=%s",
                         registrationState.get("assignedHub").getAsString(),
                         registrationState.get("deviceId").getAsString(), deviceKey);
             } else if (data.get("status").getAsString().equals("assigning")) {
-                this.logger.Log("Waiting for registration");
+                this.client.getLogger().Log("Waiting for registration");
                 Thread.sleep(2000);
                 return this.GetAssignment(deviceKey, sasKey, operationId);
             } else {
