@@ -1,0 +1,5 @@
+com.github.lucadruda.iotc.device
+com.github.lucadruda.iotc.device.callbacks
+com.github.lucadruda.iotc.device.enums
+com.github.lucadruda.iotc.device.exceptions
+com.github.lucadruda.iotc.device.models

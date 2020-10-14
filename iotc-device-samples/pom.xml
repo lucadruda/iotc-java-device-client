@@ -1,0 +1,41 @@
+<!-- Copyright (c) Luca Druda. Licensed under the MIT license. See LICENSE file in the project root for full license information. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.github.lucadruda</groupId>
+    <artifactId>iotc-device-parent</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.lucadruda</groupId>
+  <artifactId>${iotc-device-samples-artifact-id}</artifactId>
+  <name>Azure IoT Central Java Device Client</name>
+  <version>${iotc-device-samples-version}</version>
+  <description>The Azure IoTCentral Device samples for Java</description>
+  <url>https://github.com/lucadruda/iotc-java-device-client/</url>
+  <developers>
+    <developer>
+      <id>lucadruda</id>
+      <name>Luca Druda</name>
+    </developer>
+  </developers>
+  <dependencies>
+    <dependency>
+      <groupId>com.github.lucadruda</groupId>
+      <artifactId>iotc-device-client</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.0</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
