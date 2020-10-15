@@ -13,6 +13,10 @@ public class IoTCentralException extends Exception {
         super();
     }
 
+    public IoTCentralException(Exception ex) {
+        super(ex);
+    }
+
     public IoTCentralException(String message) {
         super(message);
     }

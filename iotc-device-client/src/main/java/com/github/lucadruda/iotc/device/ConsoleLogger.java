@@ -21,7 +21,8 @@ public class ConsoleLogger implements ILogger {
     @Override
     public void Log(String message, String tag) {
         if (this.logLevel != IOTC_LOGGING.DISABLED) {
-            System.out.println("INFO" + (tag != null ? " - " + tag.toUpperCase() : ":") + message);
+            System.out.println("[" + (char) 27 + "[34m" + "INFO" + (char) 27 + "[0m]"
+                    + (tag != null ? " - " + tag.toUpperCase() : ": ") + message);
         }
 
     }
@@ -34,7 +35,9 @@ public class ConsoleLogger implements ILogger {
     @Override
     public void Debug(String message, String tag) {
         if (this.logLevel == IOTC_LOGGING.ALL) {
-            System.out.println("DEBUG" + (tag != null ? " - " + tag.toUpperCase() : ":") + message);
+            System.out
+                    .println("[" + (char) 27 + "[33m" + "DEBUG" + (char) 27 + "[0m]"
+                    + (tag != null ? " - " + tag.toUpperCase() : ": ") + message);
         }
     }
 

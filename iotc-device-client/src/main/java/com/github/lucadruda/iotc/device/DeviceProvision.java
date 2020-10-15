@@ -11,10 +11,9 @@ import javax.crypto.spec.SecretKeySpec;
 import com.github.lucadruda.iotc.device.enums.IOTC_CONNECT;
 import com.github.lucadruda.iotc.device.enums.IOTC_PROTOCOL;
 import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.models.Storage;
 import com.github.lucadruda.iotc.device.models.X509Certificate;
 import com.microsoft.azure.sdk.iot.deps.util.Base64;
-import com.microsoft.azure.sdk.iot.device.DeviceClient;
-import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.provisioning.device.AdditionalData;
 import com.microsoft.azure.sdk.iot.provisioning.device.ProvisioningDeviceClient;
 import com.microsoft.azure.sdk.iot.provisioning.device.ProvisioningDeviceClientRegistrationCallback;
@@ -46,14 +45,16 @@ public class DeviceProvision {
     private ProvisioningDeviceClientTransportProtocol protocol;
     private ILogger logger;
     private ProvisioningStatus provisioningStatus;
+    private ICentralStorage centralStorage;
+    private String deviceKey;
 
     public DeviceProvision(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options,
-            ILogger logger) {
-        this(DPS_DEFAULT_ENDPOINT, deviceId, scopeId, authenticationType, options, logger);
+            ICentralStorage storage, ILogger logger) {
+        this(DPS_DEFAULT_ENDPOINT, deviceId, scopeId, authenticationType, options, storage, logger);
     }
 
     public DeviceProvision(String endpoint, String deviceId, String scopeId, IOTC_CONNECT authenticationType,
-            Object options, ILogger logger) {
+            Object options, ICentralStorage storage, ILogger logger) {
         this.endpoint = endpoint;
         this.deviceId = deviceId;
         this.scopeId = scopeId;
@@ -62,6 +63,7 @@ public class DeviceProvision {
         this.protocol = PROVISIONING_DEVICE_CLIENT_TRANSPORT_PROTOCOL;
         this.logger = logger;
         provisioningStatus = new ProvisioningStatus();
+        this.centralStorage = storage;
     }
 
     public void setIoTCModelId(String modelId) {
@@ -72,18 +74,29 @@ public class DeviceProvision {
         this.protocol = ProvisioningDeviceClientTransportProtocol.valueOf(protocol.toString());
     }
 
-    public DeviceClient register() throws IoTCentralException {
+    public String register() throws IoTCentralException {
+        return register(false);
+    }
+
+    public String register(boolean force) throws IoTCentralException {
         SecurityProvider provider;
+        String connString;
         try {
+            if (!force) {
+                connString = this.centralStorage.retrieve().getConnectionString();
+                if (connString != null && !connString.isEmpty()) {
+                    return connString;
+                }
+            }
             if (this.authenticationType == IOTC_CONNECT.X509_CERT) {
                 X509Certificate x509Certificate = (X509Certificate) options;
                 provider = new SecurityProviderX509Cert(x509Certificate.getCertificate(),
                         x509Certificate.getPrivateKey(), new LinkedList<>());
             } else {
-                String deviceKey = (String) options;
+                this.deviceKey = (String) options;
                 if (this.authenticationType == IOTC_CONNECT.SYMM_KEY
                         && (this.modelId != null && !this.modelId.isEmpty())) {
-                    deviceKey = ComputeKey((String) this.options, this.deviceId);
+                    this.deviceKey = ComputeKey((String) this.options, this.deviceId);
                 }
                 provider = new SecurityProviderSymmetricKey(deviceKey.getBytes(), this.deviceId);
             }
@@ -94,7 +107,7 @@ public class DeviceProvision {
         }
     }
 
-    private DeviceClient _internalRegister(SecurityProvider provider)
+    private String _internalRegister(SecurityProvider provider)
             throws IoTCentralException, IOException, URISyntaxException {
         try {
             ProvisioningDeviceClient provisioningDeviceClient = ProvisioningDeviceClient.create(this.endpoint,
@@ -105,53 +118,56 @@ public class DeviceProvision {
                 public void run(ProvisioningDeviceClientRegistrationResult provisioningDeviceClientRegistrationResult,
                         Exception e, Object context) {
                     DeviceProvision client = (DeviceProvision) context;
-
-                    if (context instanceof ProvisioningStatus) {
-                        ProvisioningStatus status = client.getProvisioningStatus();
-                        status.provisioningDeviceClientRegistrationInfoClient = provisioningDeviceClientRegistrationResult;
-                        status.exception = e;
-                    } else {
-                        client.logger.Debug("Received unknown context", "Provisioning");
-                    }
+                    client.provisioningStatus.provisioningDeviceClientRegistrationInfoClient = provisioningDeviceClientRegistrationResult;
+                    client.provisioningStatus.exception = e;
 
                 }
             };
             if (this.modelId != null && !this.modelId.isEmpty()) {
                 dpsPayload = new AdditionalData();
                 dpsPayload.setProvisioningPayload(String.format("{\"iotcModelId\":\"%s\"}", this.modelId));
-                provisioningDeviceClient.registerDevice(registrationCallback, this.provisioningStatus, dpsPayload);
+                provisioningDeviceClient.registerDevice(registrationCallback, this, dpsPayload);
             } else {
-                provisioningDeviceClient.registerDevice(registrationCallback, this.provisioningStatus);
+                provisioningDeviceClient.registerDevice(registrationCallback, this);
             }
 
-            while (this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                    .getProvisioningDeviceClientStatus() != ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ASSIGNED) {
-                if (this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                        .getProvisioningDeviceClientStatus() == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ERROR
-                        || this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                                .getProvisioningDeviceClientStatus() == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_DISABLED
-                        || this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                                .getProvisioningDeviceClientStatus() == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_FAILED) {
+            ProvisioningDeviceClientStatus provStatus;
+
+            while ((provStatus = this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
+                    .getProvisioningDeviceClientStatus()) != ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ASSIGNED) {
+                if (provStatus == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ERROR
+                        || provStatus == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_DISABLED
+                        || provStatus == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_FAILED) {
                     this.provisioningStatus.exception.printStackTrace();
                     throw new IoTCentralException("Registration error, bailing out");
                 }
-                this.logger.Log("Waiting for Provisioning Service to register");
+                this.logger.Log("Waiting for Provisioning Service to register."
+                        + (provStatus != null ? provStatus.toString() : ""));
                 Thread.sleep(MAX_TIME_TO_WAIT_FOR_REGISTRATION);
             }
 
-            if (this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                    .getProvisioningDeviceClientStatus() == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ASSIGNED) {
-                // connect to iothub
-                String iotHubUri = this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                        .getIothubUri();
-                String deviceId = this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient.getDeviceId();
-                return DeviceClient.createFromSecurityProvider(iotHubUri, deviceId, provider,
-                        IotHubClientProtocol.valueOf(this.protocol.toString()));
+            if (provStatus == ProvisioningDeviceClientStatus.PROVISIONING_DEVICE_STATUS_ASSIGNED) {
+                Storage storage = new Storage();
+                storage.setHubName(
+                        this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient.getIothubUri());
+                storage.setDeviceId(this.deviceId);
+                if (this.deviceKey != null && !this.deviceKey.isEmpty()) {
+                    storage.setDeviceKey(this.deviceKey);
+                } else {
+                    storage.setCertificate((X509Certificate) this.options);
+                }
+                centralStorage.persist(storage);
+                return storage.getConnectionString();
+
             }
-            throw new IoTCentralException(this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient
-                    .getProvisioningDeviceClientStatus().toString());
-        } catch (ProvisioningDeviceClientException | InterruptedException ex) {
+            throw new IoTCentralException(provStatus != null ? provStatus.toString() : "");
+        } catch (ProvisioningDeviceClientException |
+
+                InterruptedException ex) {
             throw new IoTCentralException(ex.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IoTCentralException(e.getMessage());
         }
     }
 
@@ -170,18 +186,6 @@ public class DeviceProvision {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
-    }
-
-    public ProvisioningStatus getProvisioningStatus() {
-        return provisioningStatus;
-    }
-
-    public void setProvisioningStatus(ProvisioningStatus provisioningStatus) {
-        this.provisioningStatus = provisioningStatus;
-    }
-
-    public ILogger getLogger() {
-        return logger;
     }
 
 }

@@ -1,30 +1,47 @@
 package samples.com.github.lucadruda.iotc.device;
 
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.github.lucadruda.iotc.device.ICentralStorage;
 import com.github.lucadruda.iotc.device.IoTCClient;
 import com.github.lucadruda.iotc.device.callbacks.CommandCallback;
 import com.github.lucadruda.iotc.device.callbacks.PropertiesCallback;
 import com.github.lucadruda.iotc.device.enums.IOTC_COMMAND_RESPONSE;
 import com.github.lucadruda.iotc.device.enums.IOTC_CONNECT;
 import com.github.lucadruda.iotc.device.enums.IOTC_EVENTS;
+import com.github.lucadruda.iotc.device.enums.IOTC_LOGGING;
 import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.models.Storage;
 
 public class SasKeySample {
 
-    static final String deviceId = "java";
+    static final String deviceId = "java2";
     static final String scopeId = "0ne0011423C";
-    static final String masterKey = "r0mxLzPr9gg5DfsaxVhOwKK2+8jEHNclmCeb9iACAyb2A7yHPDrB2/+PTmwnTAetvI6oQkwarWHxYbkIVLybEg==";
+    static final String deviceKey = "HYxMG7lgbchS2e/qJ/zJkTTPBCLVWbsY7/im5pdHXJc=";
+
+    static class MemStorage implements ICentralStorage {
+
+        @Override
+        public void persist(Storage storage) {
+            System.out.println("New credentials available:");
+            System.out.println(storage.getHubName());
+            System.out.println(storage.getDeviceId());
+            System.out.println(storage.getDeviceKey());
+            return;
+        }
+
+        @Override
+        public Storage retrieve() {
+            return new Storage("iotc-1f9e162c-eacc-408d-9fb2-c9926a071037.azure-devices.net", "java2",
+                    "safasf");
+        }
+
+    }
 
     public static void main(String[] args) {
-        IoTCClient client = new IoTCClient(deviceId, scopeId, IOTC_CONNECT.SYMM_KEY, masterKey);
-        client.SetModelId("urn:testapplucaM3:TestSDK_18x:2");
-
-        Path path = Paths.get("assets/modelId.jpg");
-        File file = path.toFile();
+        System.out.println("Welcome to IoTCentral");
+        IoTCClient client = new IoTCClient(deviceId, scopeId, IOTC_CONNECT.DEVICE_KEY, deviceKey, new MemStorage());
+        client.SetLogging(IOTC_LOGGING.ALL);
+        // Path path = Paths.get("assets/modelId.jpg");
+        // File file = path.toFile();
         PropertiesCallback onProps = (property) -> {
             System.out.println(String.format("Received property '%s' with value: %s", property.getName(),
                     property.getValue().toString()));
@@ -42,7 +59,7 @@ public class SasKeySample {
         try {
             client.Connect();
             client.SendProperty(String.format("{\"readOnlyProp\":%d}", 20));
-            client.UploadFile(file.getName(), file);
+            // client.UploadFile(file.getName(), file);
 
             while (true) {
                 System.out.println("Sending telemetry");

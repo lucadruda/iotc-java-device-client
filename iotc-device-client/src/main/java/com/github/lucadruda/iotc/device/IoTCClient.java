@@ -9,6 +9,7 @@ import com.github.lucadruda.iotc.device.models.CommandResponse;
 import com.github.lucadruda.iotc.device.models.IoTCCommand;
 import com.github.lucadruda.iotc.device.models.IoTCProperty;
 import com.github.lucadruda.iotc.device.models.PropertyResponse;
+import com.github.lucadruda.iotc.device.models.X509Certificate;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +20,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.net.ssl.SSLContext;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -28,11 +31,9 @@ import com.google.gson.JsonPrimitive;
 import com.microsoft.azure.sdk.iot.deps.serializer.FileUploadCompletionNotification;
 import com.microsoft.azure.sdk.iot.deps.serializer.FileUploadSasUriRequest;
 import com.microsoft.azure.sdk.iot.deps.serializer.FileUploadSasUriResponse;
-import com.microsoft.azure.sdk.iot.deps.serializer.MethodParser;
+import com.microsoft.azure.sdk.iot.device.ClientOptions;
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
-import com.microsoft.azure.sdk.iot.device.IotHubConnectionState;
-import com.microsoft.azure.sdk.iot.device.IotHubConnectionStateCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeReason;
 import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
@@ -59,7 +60,7 @@ public class IoTCClient implements IIoTCClient {
     private DeviceProvision deviceProvision;
     private IOTC_CONNECT authenticationType;
     private String sasKey;
-    private IoTCentralCert certificate;
+    private X509Certificate certificate;
     private IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
     private DeviceClient deviceClient;
 
@@ -78,7 +79,7 @@ public class IoTCClient implements IIoTCClient {
      * @param logger             A custom logger implementing the ILogger interface
      */
     public IoTCClient(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options,
-            ILogger logger) {
+            ICentralStorage storage, ILogger logger) {
         this.connected = false;
         this.deviceId = deviceId;
         this.logger = logger;
@@ -87,14 +88,15 @@ public class IoTCClient implements IIoTCClient {
         if (this.authenticationType == IOTC_CONNECT.SYMM_KEY || this.authenticationType == IOTC_CONNECT.DEVICE_KEY) {
             this.sasKey = (String) options;
         } else if (this.authenticationType == IOTC_CONNECT.X509_CERT) {
-            this.certificate = (IoTCentralCert) options;
+            this.certificate = (X509Certificate) options;
         }
         this.events = new HashMap<IOTC_EVENTS, IoTCCallback>();
-        this.deviceProvision = new DeviceProvision(deviceId, scopeId, authenticationType, options, logger);
+        this.deviceProvision = new DeviceProvision(deviceId, scopeId, authenticationType, options, storage, logger);
     }
 
-    public IoTCClient(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options) {
-        this(deviceId, scopeId, authenticationType, options, new ConsoleLogger());
+    public IoTCClient(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options,
+            ICentralStorage storage) {
+        this(deviceId, scopeId, authenticationType, options, storage, new ConsoleLogger());
     }
 
     /**
@@ -150,19 +152,48 @@ public class IoTCClient implements IIoTCClient {
 
     @Override
     public void Connect(Integer timeout) throws IoTCentralException {
-        this.deviceClient = this.deviceProvision.register();
-        this.listenToConnectionState();
+        String connectionString = this.deviceProvision.register();
+        ClientOptions clientOptions = null;
         try {
-            this.deviceClient.open();
-            this.listenToProperties();
-            this.listenToCommands();
+            if (this.authenticationType == IOTC_CONNECT.X509_CERT) {
+                SSLContext sslContext = SSLContextBuilder.buildSSLContext(this.certificate.getCertificate(),
+                        this.certificate.getPrivateKey());
+                clientOptions = new ClientOptions();
+                clientOptions.setSslContext(sslContext);
+            }
+            if (clientOptions != null) {
+                this.deviceClient = new DeviceClient(connectionString, this.protocol, clientOptions);
+            } else {
+                this.deviceClient = new DeviceClient(connectionString, this.protocol);
+            }
             this.listenToC2D();
+            this.deviceClient.open();
+            this.subscribe();
 
-        } catch (IOException e) {
-            throw new IoTCentralException(e.getMessage());
+        } catch (Exception e) {
+            try {
+                this.logger.Log("Fetching new credentials from provisioning service");
+                connectionString = this.deviceProvision.register(true);
+                if (clientOptions != null) {
+                    this.deviceClient = new DeviceClient(connectionString, this.protocol, clientOptions);
+                } else {
+                    this.deviceClient = new DeviceClient(connectionString, this.protocol);
+                }
+                this.listenToC2D();
+                this.deviceClient.open();
+                this.subscribe();
+            } catch (IOException | URISyntaxException ex) {
+                throw new IoTCentralException(e.getMessage());
+            }
         }
         this.logger.Log("Device connected");
 
+    }
+
+    private void subscribe() throws IOException {
+        this.listenToConnectionState();
+        this.listenToProperties();
+        this.listenToCommands();
     }
 
     private void listenToConnectionState() {
@@ -426,7 +457,7 @@ public class IoTCClient implements IIoTCClient {
     /**
      * @return the certificate
      */
-    public IoTCentralCert getCertificate() {
+    public X509Certificate getCertificate() {
         return certificate;
     }
 

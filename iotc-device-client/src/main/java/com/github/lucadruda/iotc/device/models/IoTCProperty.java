@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 package com.github.lucadruda.iotc.device.models;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class IoTCProperty {
 
     private String name;
