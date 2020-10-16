@@ -58,10 +58,11 @@ The compiled JAR file with all dependencies bundled in can then be found at:
 When you're ready to use the Java device SDK in your own project, include this JAR file in your project.
 
 ## API reference
-* [Azure IoTCentral Device SDK](https://lucadruda.github.io/iotc-java-device-client/index.html)
+Javadocs are automatically generated and available at 
+Azure IoTCentral Device SDK [doca page.](https://lucadruda.github.io/iotc-java-device-client/index.html)
 
 
-### Usage
+## Usage
 
 ```java
 import com.github.lucadruda.iotc.device.IoTCClient;
@@ -76,14 +77,38 @@ IoTCClient client = new IoTCClient(deviceId, scopeId, credType, credentials, sto
 
 *credentials*  : SAS key or x509 Certificate
 
-*storageManager* : A storage manager to cache credentials
+*storageManager* : A storage manager to cache credentials (see [Cache Credentials](#cache-credentials) for details);
 
+Most of the APIs throw _IoTCentralException_ when a failure occurs 
 
-
-##### SetLogging
-Change the logging level
+### Connect
+```java
+void client.Connect([timeout]);
 ```
-client.SetLogging(logLevel);
+_timeout_: optional timeout for connection in seconds.
+
+### SendTelemetry
+Sends a telemetry to IoT Central.
+```java
+void client.SendTelemetry(payload,[properties]);
+```
+_payload_: The telemetry object. It can be a JSON string (e.g. "{\"temperature\":23}" ) or a plain Java object (POJO).
+
+_properties_: Optional object containing extra properties for the message. It can be a JSON string or a plain Java object (POJO).
+
+### SendProperty
+Sends a property to IoT Central.
+```java
+void client.SendProperty(payload,[properties]);
+```
+_payload_: The property object. It can be a JSON string (e.g. "{\"fanSpeed\":120}" ) or a plain Java object (POJO).
+
+### Client settings
+
+#### SetLogging
+Change the logging level.
+```java
+void client.SetLogging
 ```
 
 *logLevel*   : (default value is `IOTC_LOGGING.DISABLED`)
@@ -249,6 +274,9 @@ client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
 
 `iotc` client callbacks are instances of `IoTCCallback` or its derivates.
 Must override "Exec" method.
+
+## Cache Credentials
+Instructions on storage manager
 
 ## One-touch device provisioning and approval (only for SAS authentication) - Preview
 A device can send custom data during provision process: if a device is aware of its IoT Central template Id, then it can be automatically provisioned.
