@@ -249,3 +249,6 @@ By default device auto-approval in IoT Central is enabled, which means that admi
 If auto-approval is disabled, administrators need to manually approve new devices.
 This can be done from explorer page after selecting the device
 ![Img](assets/manual_approval.jpg)
+
+## License
+This samples is licensed with the MIT license. For more information, see [LICENSE](./LICENSE)
