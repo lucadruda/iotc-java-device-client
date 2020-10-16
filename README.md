@@ -1,5 +1,7 @@
 # Azure IoT Central Java SDK Documentation
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.lucadruda/iotc-device-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.lucadruda/iotc-device-client)
+
 [![Join the chat at https://gitter.im/iotdisc/community](https://badges.gitter.im/iotdisc.svg)](https://gitter.im/iotdisc/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Licensed under the MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/lucadruda/iotc-java-device-client/blob/master/LICENSE)
 
@@ -27,7 +29,7 @@ _This is the recommended method of including the Azure IoTCentral library in you
 ```xml
 	<dependency>
         <groupId>com.github.lucadruda</groupId>
-        <artifactId>iotc-java-device-client</artifactId>
+        <artifactId>iotc-device-client</artifactId>
         <version>2.0.0</version>
 		<!--This is the current version number as of the writing of this document. Yours may be different.-->
 	</dependency>
@@ -59,8 +61,11 @@ When you're ready to use the Java device SDK in your own project, include this J
 
 ## API reference
 Javadocs are automatically generated and available at 
-Azure IoTCentral Device SDK [doca page.](https://lucadruda.github.io/iotc-java-device-client/index.html)
+Azure IoTCentral Device SDK [doc page.](https://lucadruda.github.io/iotc-java-device-client/index.html)
 
+
+## Samples
+A couple of samples can be found in the [samples](./iotc-device-samples) folder.
 
 ## Usage
 
@@ -79,6 +84,14 @@ IoTCClient client = new IoTCClient(deviceId, scopeId, credType, credentials, sto
 
 *storageManager* : A storage manager to cache credentials (see [Cache Credentials](#cache-credentials) for details);
 
+The client also accepts custom loggers to use a different solution than console logging (default).
+The provided class must implement the _ILogger_ interface.
+```java
+IoTCClient client = new IoTCClient(deviceId, scopeId, credType, credentials, storageManager, logger);
+```
+
+>NOTE: Instructions on connecting devices using x.509 on IoT Central [here.](https://docs.microsoft.com/en-us/azure/iot-central/core/concepts-get-connected#connect-devices-using-x509-certificates)
+
 Most of the APIs throw _IoTCentralException_ when a failure occurs 
 
 ### Connect
@@ -87,218 +100,152 @@ void client.Connect([timeout]);
 ```
 _timeout_: optional timeout for connection in seconds.
 
-### SendTelemetry
+The client provides automatic re-connection in case of network issues. If you need to definitely disconnect it, just call the _Disconnect_ method.
+
+```java
+void client.Disconnect();
+```
+
+### Send Telemetry
 Sends a telemetry to IoT Central.
 ```java
 void client.SendTelemetry(payload,[properties]);
 ```
-_payload_: The telemetry object. It can be a JSON string (e.g. "{\"temperature\":23}" ) or a plain Java object (POJO).
+- ___payload___: The telemetry object. It can be a JSON string (e.g. "{\"temperature\":23}" ) or a plain Java object (POJO).
 
-_properties_: Optional object containing extra properties for the message. It can be a JSON string or a plain Java object (POJO).
+- ___properties___: Optional object containing extra properties for the message. It can be a JSON string or a plain Java object (POJO).
 
-### SendProperty
+### Send Property
 Sends a property to IoT Central.
 ```java
 void client.SendProperty(payload,[properties]);
 ```
-_payload_: The property object. It can be a JSON string (e.g. "{\"fanSpeed\":120}" ) or a plain Java object (POJO).
+___payload___: The property object. It can be a JSON string (e.g. "{\"fanSpeed\":120}" ) or a plain Java object (POJO).
 
 ### Client settings
 
-#### SetLogging
+#### __Set Logging level__
 Change the logging level.
 ```java
-void client.SetLogging
+void client.SetLogging(IOTC_LOGGING logLevel);
 ```
 
-*logLevel*   : (default value is `IOTC_LOGGING.DISABLED`)
-```
+- ___logLevel___   : (default value is `IOTC_LOGGING.API_ONLY`)
+``` java
 class IOTLogLevel:
-  IOTC_LOGGING.DISABLED,
-  IOTC_LOGGING.API_ONLY,
-  IOTC_LOGGING.ALL
+  IOTC_LOGGING.DISABLED, // no logs
+  IOTC_LOGGING.API_ONLY, // common operations
+  IOTC_LOGGING.ALL // verbose log and debug
 ```
 
-*i.e.* => client.SetLogging(IOTC_LOGGING.API_ONLY)
-
-##### SetGlobalEndpoint
-Change the service endpoint URL
+#### __Set Provisioning Service endpoint (Azure DPS)__
+Change the provisioning service endpoint URL
 ```
-client.SetGlobalEndpoint(url)
+void client.SetGlobalEndpoint(String url)
 ```
 
-*url*    : URL for service endpoint. (default value is `global.azure-devices-provisioning.net`)
+***url***    : URL for service endpoint. (default value is `global.azure-devices-provisioning.net`)
 
-\**call this before connect*
+> NOTE: this must be called before _Connect()_.
 
-##### SetApiVersion
-Change the provisioning service API version
-```
-client.SetApiVersion(apiVersion)
-```
-
-*apiVersion*    : API version for service endpoint. (default value is `2018-09-01-preview`)
-
-\**call this before connect*
-
-##### Connect
-Connect device client. It returns if successfull or throws exception if connection fails.
-
-```
-client.Connect()
+#### __Set connection protocol__
+Set the transport protocol for both Provisioning Service and IoT Central client.
+```java
+public void SetProtocol(IOTC_PROTOCOL transport);
 ```
 
-##### SendTelemetry
-Sends telemetry
+- ___transport___: One transport protocol between HTTPS, MQTT, AMQPS and their WebSocket mods (MQTT_WS, AMQPS_WS). 
 
+**Default**: MQTT
+
+> NOTE: this must be called before _Connect()_.
+
+### Listen to properties update
+
+```java
+void client.on(IOTC_EVENTS.Properties, callback);
 ```
-client.SendTelemetry(payload,[callback])
+- ___callback___: Callback receiving an IoTCProperty object and triggered when a property changes in IoTCentral. Class _PropertiesCallback_ can be used for this purpose.
+
+e.g.
+```java
+PropertiesCallback onProps = (IoTCProperty property) -> {
+            System.out.println(String.format("Received property '%s' with value: %s", property.getName(),
+                    property.getValue().toString()));
+            property.ack("Property applied");
+        };
 ```
+Calling _ack()_ after property value has been received/applied is mandatory to sync values between device and IoT Central application.
 
-*payload*  : A payload object. It can be a POJO, a map or a JSON string.
+### Listen to commands and offline commands.
 
-i.e. `client.SendTelemetry(new Sample(24))`
-where Sample is a class with public properties.
-
-##### SendState
-Sends device state
-
+```java
+client.on(IOTC_EVENTS.Commands, onCommand);
 ```
-client.SendState(payload)
+- ___callback___: Callback receiving an IoTCCommand object and triggered when a command is sent from IoTCentral. 
+For offline command, callback will trigger both when device is connected and when a command is enqueued and device re-connect after disconnession. Class CommandCallback can be used for this purpose.
+
+e.g.
+```java
+        CommandCallback onCommand = (IoTCCommand command) -> {
+            System.out.println(String.format("Received command '%s' with value: %s", command.getName(),
+                    command.getRequestPayload().toString()));
+            return command.reply(IOTC_COMMAND_RESPONSE.SUCCESS, "Command executed");
+        };
 ```
+Calling _reply()_ after command execution is used when a response is required (default). For offline commands the method is a no-op.
 
-*payload*  : A payload object. It can be a POJO, a map or a JSON string.
-
-i.e. `client.SendState(new Flag("on"))`
-where Flag is a class with public properties.
-
-##### SendProperty
-Sends a property
-
+### Upload files
+```java
+ public boolean UploadFile(String fileName, File file);
 ```
-client.SendProperty(payload)
-```
+Uploads a file to a storage account configured in the IoT Central application.
 
-*payload*  : A payload object. It can be a POJO, a map or a JSON string.
+- ___fileName___: The final name for the file on the storage. This is not the source file path, but target name of the final blob.
 
-i.e. `client.SendState(new Property("value"))`
-where Property is a class with public properties.`
+- ___file___: The _File_ object to upload
 
-##### Disconnect
-Disconnects device client
+Instructions on enabling file upload feature for an IoT Central application are available [here.](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-configure-file-uploads)
 
-```
-client.Disconnect([callback])
-```
-
-i.e. `client.Disconnect()`
-
-##### on
-set event callback to listen events
-
-`ConnectionStatus` : connection status has changed
-`MessageSent`      : message was sent
-`Command`          : a command received from Azure IoT Central
-`SettingsUpdated`  : device settings were updated
-
-i.e.
-```
-client.on(event, callback)
-```
-*event*  : IOTC_EVENTS type
-```
-IOTC_EVENTS.ConnectionStatus, 
-IOTC_EVENTS.MessageSent,
-IOTC_EVENTS.Command,
-IOTC_EVENTS.SettingsUpdated
-```
-*callback* : IoTCentralCallback type
-
-```
-client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
-            @Override
-            public void Exec(Object result) {
-                System.out.println("Setting: " + result);
-            }
-        });
-```
-Command management:
-
-*after receiveing commands, it's possible to send operation progress back to the application as a property. Use the "Command" class for easy implementation*
-
-```
-client.on(IOTC_EVENTS.Command, new IoTCCallback() {
-
-            @Override
-            public void Exec(Object result) {
-                Command cmd = null;
-                if (result instanceof Command) {
-                    cmd = (Command) result;
-                }
-                try {
-                    client.SendProperty(cmd.getResponseObject("Executed"), null);
-                } catch (IoTCentralException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-```
-*getResponseObject(value-to-send) returns a compatible object to be used by SendProperty*
-
-
-
-Setting management:
-
-*after receiveing setting, you can acknowledge successfull synchronization in the device by sending a property back to the service. Use the "Setting" class for easy implementation*
-
-```
-client.on(IOTC_EVENTS.SettingsUpdated, new IoTCCallback() {
-
-            @Override
-            public void Exec(Object result) {
-                Setting setting = null;
-                if (result instanceof Setting) {
-                    setting = (Setting) result;
-                }
-                try {
-                    client.SendProperty(setting.getResponseObject("Synced"), null);
-                } catch (IoTCentralException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-```
-*getResponseObject(value-to-send) returns a compatible object to be used by SendProperty*
-
-##### callback info class
-
-`iotc` client callbacks are instances of `IoTCCallback` or its derivates.
-Must override "Exec" method.
 
 ## Cache Credentials
-Instructions on storage manager
+The IoT Central device client accepts a storage manager to cache connection credentials. This allows to skip unnecessary device re-provisioning and requests to provisioning service.
+When valid credentials are present, device connects directly to IoT Central, otherwise it asks provisioning service for new credentials and eventually cache them.
 
-## One-touch device provisioning and approval (only for SAS authentication) - Preview
+Provided class must implement _ICentralStorage_ interface.
+
+```java
+public interface ICentralStorage {
+    void persist(Storage storage);
+    Storage retrieve();
+}
+```
+
+## One-touch device provisioning and approval
 A device can send custom data during provision process: if a device is aware of its IoT Central template Id, then it can be automatically provisioned.
 
 ### How to set IoTC template ID in your device
-Template Id can be found in the device explorer page of IoTCentral
-![Img](assets/modelId.jpg)
+Device template id (a.k.a Model Id) is used when obtaining authorization codes for new devices and automatically assign them to the right template. By providing template id during credentials generation, user doesn't need to manually migrate or assign device from IoT Central site.
 
-Then initialize client passing the model and setting the right API version
+In order to get the unique identifier, open configuration page for required model under "Device templates" section.
+![Img](assets/modelId.png)
 
-_IoTCClient client = new IoTCClient(deviceId, templateId, scopeId, credType, credentials);_
-_client.SetApiVersion("2019-01-15");_
-
-
-### Manual approval (default)
-By default device auto-approval in IoT Central is disabled, which means that administrator needs to approve the device registration to complete the provisioning process.
-This can be done from explorer page after selecting the device
-![Img](assets/manual_approval.jpg)
+Click on "View Identity" and in next screen copy model urn.
+![Img](assets/modelId_2.png)
 
 
-### Automatic approval
-To change default behavior, administrator can enable device auto-approval from Device Connection page under the Administration section.
-With automatic approval a device can be provisioned without any manual action and can start sending/receiving data after status changes to "Provisioned"
+Then call this method before connect():
+
+```java
+public void SetModelId(String modelId);
+```
+
+### Automatic approval (default)
+By default device auto-approval in IoT Central is enabled, which means that administrators don't need to approve device registration to complete the provisioning process when device is not already created.
 
 ![Img](assets/auto_approval.jpg)
+
+### Manual approval
+If auto-approval is disabled, administrators need to manually approve new devices.
+This can be done from explorer page after selecting the device
+![Img](assets/manual_approval.jpg)

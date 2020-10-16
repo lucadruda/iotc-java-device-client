@@ -9,13 +9,14 @@ import com.github.lucadruda.iotc.device.enums.IOTC_CONNECT;
 import com.github.lucadruda.iotc.device.enums.IOTC_EVENTS;
 import com.github.lucadruda.iotc.device.enums.IOTC_LOGGING;
 import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
+import com.github.lucadruda.iotc.device.models.IoTCProperty;
 import com.github.lucadruda.iotc.device.models.Storage;
 
 public class SasKeySample {
 
-    static final String deviceId = "java2";
-    static final String scopeId = "0ne0011423C";
-    static final String deviceKey = "HYxMG7lgbchS2e/qJ/zJkTTPBCLVWbsY7/im5pdHXJc=";
+    static final String deviceId = "";
+    static final String scopeId = "";
+    static final String deviceKey = "";
 
     static class MemStorage implements ICentralStorage {
 
@@ -30,8 +31,7 @@ public class SasKeySample {
 
         @Override
         public Storage retrieve() {
-            return new Storage("iotc-1f9e162c-eacc-408d-9fb2-c9926a071037.azure-devices.net", "java2",
-                    "safasf");
+            return new Storage("", "","");
         }
 
     }
@@ -40,9 +40,8 @@ public class SasKeySample {
         System.out.println("Welcome to IoTCentral");
         IoTCClient client = new IoTCClient(deviceId, scopeId, IOTC_CONNECT.DEVICE_KEY, deviceKey, new MemStorage());
         client.SetLogging(IOTC_LOGGING.ALL);
-        // Path path = Paths.get("assets/modelId.jpg");
-        // File file = path.toFile();
-        PropertiesCallback onProps = (property) -> {
+
+        PropertiesCallback onProps = (IoTCProperty property) -> {
             System.out.println(String.format("Received property '%s' with value: %s", property.getName(),
                     property.getValue().toString()));
             property.ack("Property applied");
@@ -59,7 +58,7 @@ public class SasKeySample {
         try {
             client.Connect();
             client.SendProperty(String.format("{\"readOnlyProp\":%d}", 20));
-            // client.UploadFile(file.getName(), file);
+
 
             while (true) {
                 System.out.println("Sending telemetry");
