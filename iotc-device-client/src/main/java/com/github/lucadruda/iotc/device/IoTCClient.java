@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -76,6 +77,8 @@ public class IoTCClient implements IIoTCClient {
      *                           key, Device SAS key or x.509
      * @param options            Value for authentication: keys for symmetric and
      *                           SAS key authentication or x.509 certificate
+     * @param storage            An ICentralStorage implementation to cache device
+     *                           credentials
      * @param logger             A custom logger implementing the ILogger interface
      */
     public IoTCClient(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options,
@@ -217,9 +220,10 @@ public class IoTCClient implements IIoTCClient {
             @Override
             public DeviceMethodData call(String methodName, Object methodData, Object context) {
                 IoTCClient client = (IoTCClient) context;
+                String payload = new String((byte[]) methodData, StandardCharsets.UTF_8);
                 if (client.events.containsKey(IOTC_EVENTS.Commands)) {
+                    client.logger.Debug(String.format("Received command: '%s' with data '%s'", methodName, payload));
                     try {
-                        String payload = new String((byte[]) methodData, "UTF-8");
                         CommandResponse resp = (name, message) -> {
                             try {
                                 client.SendProperty(String.format("{\"%s\":\"%s\"}", name, message));
@@ -245,6 +249,32 @@ public class IoTCClient implements IIoTCClient {
         }, null);
     }
 
+    private Object getPropertyValue(JsonElement value) {
+        Object res = value.getAsJsonObject();
+        JsonPrimitive primitive = value.getAsJsonPrimitive();
+        if (primitive.isString()) {
+            res = primitive.getAsString();
+        } else if (primitive.isBoolean()) {
+            res = primitive.getAsBoolean();
+        } else if (primitive.isNumber()) {
+            res = primitive.getAsNumber();
+        }
+        return res;
+    }
+
+    private void handlePropertyResponse(IoTCClient client, String componentName, String propertyName,
+            Object propertyValue, Integer version, PropertiesCallback callback) {
+        PropertyResponse response = (syncValue) -> {
+            try {
+                client.SendProperty(syncValue);
+            } catch (IoTCentralException ex) {
+                client.logger.Debug(ex.getMessage(), "Twin");
+            }
+        };
+        ((PropertiesCallback) callback)
+                .exec(new IoTCProperty(componentName, propertyName, propertyValue, version, response));
+    }
+
     private void listenToProperties() throws IOException {
         TwinPropertyCallBack propCb = new TwinPropertyCallBack() {
             @Override
@@ -253,23 +283,23 @@ public class IoTCClient implements IIoTCClient {
                 if (client.events.containsKey(IOTC_EVENTS.Properties)) {
                     IoTCCallback callback = client.events.get(IOTC_EVENTS.Properties);
                     if (callback instanceof PropertiesCallback) {
+                        String propertyName = property.getKey();
                         JsonObject jobj = (JsonObject) new JsonParser().parse(property.getValue().toString());
-                        JsonPrimitive primitive = jobj.get("value").getAsJsonPrimitive();
-                        Object value = primitive.getAsString();
-                        if (primitive.isBoolean()) {
-                            value = primitive.getAsBoolean();
-                        } else if (primitive.isNumber()) {
-                            value = primitive.getAsNumber();
-                        }
-                        PropertyResponse response = (syncValue) -> {
-                            try {
-                                client.SendProperty(syncValue);
-                            } catch (IoTCentralException ex) {
-                                client.logger.Debug(ex.getMessage(), "Twin");
+                        JsonElement value = jobj.get("value");
+                        if (value.isJsonObject()) {
+                            JsonObject properties = value.getAsJsonObject();
+                            String componentName = properties.has("__t") ? propertyName : null;
+                            for (Map.Entry<String, JsonElement> entry : properties.entrySet()) {
+                                if (entry.getKey() != "__t") {
+                                    handlePropertyResponse(client, componentName, entry.getKey(),
+                                            getPropertyValue(entry.getValue()), property.getVersion(),
+                                            (PropertiesCallback) callback);
+                                }
                             }
-                        };
-                        ((PropertiesCallback) callback)
-                                .exec(new IoTCProperty(property.getKey(), value, property.getVersion(), response));
+                        } else {
+                            handlePropertyResponse(client, null, propertyName, getPropertyValue(value),
+                                    property.getVersion(), (PropertiesCallback) callback);
+                        }
                     }
 
                 } else {

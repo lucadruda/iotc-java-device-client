@@ -33,7 +33,7 @@ public class X509Sample {
 
         @Override
         public Storage retrieve() {
-            return new Storage("", "", "");
+            return new Storage();
         }
 
     }
