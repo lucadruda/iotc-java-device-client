@@ -224,6 +224,15 @@ public class IoTCClient implements IIoTCClient {
                 if (client.events.containsKey(IOTC_EVENTS.Commands)) {
                     client.logger.Debug(String.format("Received command: '%s' with data '%s'", methodName, payload));
                     try {
+                        String[] nameWithComponent = methodName.split("\\*");
+                        String componentName = null;
+                        String commandName = null;
+                        if (nameWithComponent.length > 1) {
+                            componentName = nameWithComponent[0];
+                            commandName = nameWithComponent[1];
+                        } else {
+                            commandName = methodName;
+                        }
                         CommandResponse resp = (name, message) -> {
                             try {
                                 client.SendProperty(String.format("{\"%s\":\"%s\"}", name, message));
@@ -233,7 +242,7 @@ public class IoTCClient implements IIoTCClient {
                             }
                         };
                         return ((CommandCallback) client.events.get(IOTC_EVENTS.Commands))
-                                .exec(new IoTCCommand(methodName, payload, resp));
+                                .exec(new IoTCCommand(componentName, commandName, payload, resp));
                     } catch (Exception ex) {
                         return new DeviceMethodData(500, "Failure");
                     }
@@ -250,16 +259,21 @@ public class IoTCClient implements IIoTCClient {
     }
 
     private Object getPropertyValue(JsonElement value) {
-        Object res = value.getAsJsonObject();
-        JsonPrimitive primitive = value.getAsJsonPrimitive();
-        if (primitive.isString()) {
-            res = primitive.getAsString();
-        } else if (primitive.isBoolean()) {
-            res = primitive.getAsBoolean();
-        } else if (primitive.isNumber()) {
-            res = primitive.getAsNumber();
+        if (value.isJsonPrimitive()) {
+            JsonPrimitive primitive = value.getAsJsonPrimitive();
+            if (primitive.isBoolean()) {
+                return primitive.getAsBoolean();
+            } else if (primitive.isNumber()) {
+                return primitive.getAsNumber();
+            } else {
+                return primitive.getAsString();
+            }
         }
-        return res;
+        if (value.isJsonObject()) {
+            JsonObject valueObj = value.getAsJsonObject();
+            return getPropertyValue(valueObj.get("value"));
+        }
+        return null;
     }
 
     private void handlePropertyResponse(IoTCClient client, String componentName, String propertyName,
@@ -284,13 +298,14 @@ public class IoTCClient implements IIoTCClient {
                     IoTCCallback callback = client.events.get(IOTC_EVENTS.Properties);
                     if (callback instanceof PropertiesCallback) {
                         String propertyName = property.getKey();
-                        JsonObject jobj = (JsonObject) new JsonParser().parse(property.getValue().toString());
-                        JsonElement value = jobj.get("value");
+                        JsonObject payloadObject = (JsonObject) new JsonParser().parse(property.getValue().toString());
+                        JsonElement value = payloadObject.has("value") ? payloadObject.get("value") : payloadObject;
+
                         if (value.isJsonObject()) {
                             JsonObject properties = value.getAsJsonObject();
                             String componentName = properties.has("__t") ? propertyName : null;
                             for (Map.Entry<String, JsonElement> entry : properties.entrySet()) {
-                                if (entry.getKey() != "__t") {
+                                if (!entry.getKey().equals("__t")) {
                                     handlePropertyResponse(client, componentName, entry.getKey(),
                                             getPropertyValue(entry.getValue()), property.getVersion(),
                                             (PropertiesCallback) callback);
@@ -330,7 +345,7 @@ public class IoTCClient implements IIoTCClient {
                             }
                         }
                         ((CommandCallback) client.events.get(IOTC_EVENTS.Commands))
-                                .exec(new IoTCCommand(methodName, payload));
+                                .exec(new IoTCCommand(null, methodName, payload));
                         return IotHubMessageResult.COMPLETE;
                     } catch (Exception ex) {
                         if (client.protocol != IotHubClientProtocol.MQTT

@@ -20,3 +20,6 @@ buildNumber.properties
 .vscode
 .classpath
 .project
+
+# samples
+samples.config
