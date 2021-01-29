@@ -1,9 +1,11 @@
 package com.github.lucadruda.iotc.device.models;
 
+import java.nio.charset.StandardCharsets;
+
 public class Storage {
     private String hubName;
     private String deviceId;
-    private String deviceKey;
+    private byte[] deviceKey;
     private X509Certificate certificate;
 
     public String getHubName() {
@@ -18,11 +20,11 @@ public class Storage {
         this.certificate = certificate;
     }
 
-    public String getDeviceKey() {
+    public byte[] getDeviceKey() {
         return deviceKey;
     }
 
-    public void setDeviceKey(String deviceKey) {
+    public void setDeviceKey(byte[] deviceKey) {
         this.deviceKey = deviceKey;
     }
 
@@ -42,16 +44,16 @@ public class Storage {
     }
 
     public String getConnectionString() {
-        if (deviceKey != null && !deviceKey.isEmpty() && hubName != null && !hubName.isEmpty() && deviceId != null
-                && !deviceId.isEmpty()) {
-            return String.format("HostName=%s;DeviceId=%s;SharedAccessKey=%s", hubName, deviceId, deviceKey);
+        if (deviceKey != null && hubName != null && !hubName.isEmpty() && deviceId != null && !deviceId.isEmpty()) {
+            return String.format("HostName=%s;DeviceId=%s;SharedAccessKey=%s", hubName, deviceId,
+                    new String(deviceKey, StandardCharsets.UTF_8));
         } else if (certificate != null && hubName != null && !hubName.isEmpty() && deviceId != null) {
             return String.format("HostName=%s;DeviceId=%s;x509=true", hubName, deviceId);
         }
         return null;
     }
 
-    public Storage(String hubName, String deviceId, String deviceKey) {
+    public Storage(String hubName, String deviceId, byte[] deviceKey) {
         this(hubName, deviceId, deviceKey, null);
     }
 
@@ -59,7 +61,7 @@ public class Storage {
         this(hubName, deviceId, null, certificate);
     }
 
-    public Storage(String hubName, String deviceId, String deviceKey, X509Certificate certificate) {
+    public Storage(String hubName, String deviceId, byte[] deviceKey, X509Certificate certificate) {
         this.hubName = hubName;
         this.deviceId = deviceId;
         this.deviceKey = deviceKey;

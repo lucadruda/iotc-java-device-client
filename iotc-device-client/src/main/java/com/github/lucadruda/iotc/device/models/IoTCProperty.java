@@ -5,15 +5,17 @@ package com.github.lucadruda.iotc.device.models;
 public class IoTCProperty {
 
     private String name;
+    private String componentName;
     private Object value;
     private int version;
     private PropertyResponse response;
 
-    public IoTCProperty(String name, Object value, int version, PropertyResponse response) {
+    public IoTCProperty(String componentName, String name, Object value, int version, PropertyResponse response) {
         this.name = name;
         this.value = value;
         this.version = version;
         this.response = response;
+        this.componentName = componentName;
     }
 
     /**
@@ -38,8 +40,15 @@ public class IoTCProperty {
         if (value instanceof String) {
             strVal = String.format("\"%s\"", value);
         }
-        this.response.sendResponse(String.format("{\"%s\":{\"ac\":%d,\"ad\":\"%s\",\"value\":%s,\"av\":%d}}", getName(),
-                200, message.isEmpty() ? "Property applied" : message, strVal, getVersion()));
+        if (this.componentName != null) {
+            this.response.sendResponse(
+                    String.format("{\"%s\":{\"__t\":\"c\",\"%s\":{\"ac\":%d,\"ad\":\"%s\",\"value\":%s,\"av\":%d}}}",
+                            getComponentName(), getName(), 200, message.isEmpty() ? "Property applied" : message,
+                            strVal, getVersion()));
+        } else {
+            this.response.sendResponse(String.format("{\"%s\":{\"ac\":%d,\"ad\":\"%s\",\"value\":%s,\"av\":%d}}",
+                    getName(), 200, message.isEmpty() ? "Property applied" : message, strVal, getVersion()));
+        }
     }
 
     /**
@@ -47,6 +56,14 @@ public class IoTCProperty {
      */
     public int getVersion() {
         return version;
+    }
+
+    /**
+     * 
+     * @return component name
+     */
+    public String getComponentName() {
+        return componentName;
     }
 
 }

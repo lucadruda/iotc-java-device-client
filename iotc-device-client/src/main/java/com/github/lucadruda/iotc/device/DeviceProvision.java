@@ -2,18 +2,13 @@ package com.github.lucadruda.iotc.device;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 import com.github.lucadruda.iotc.device.enums.IOTC_CONNECT;
 import com.github.lucadruda.iotc.device.enums.IOTC_PROTOCOL;
 import com.github.lucadruda.iotc.device.exceptions.IoTCentralException;
 import com.github.lucadruda.iotc.device.models.Storage;
 import com.github.lucadruda.iotc.device.models.X509Certificate;
-import com.microsoft.azure.sdk.iot.deps.util.Base64;
 import com.microsoft.azure.sdk.iot.provisioning.device.AdditionalData;
 import com.microsoft.azure.sdk.iot.provisioning.device.ProvisioningDeviceClient;
 import com.microsoft.azure.sdk.iot.provisioning.device.ProvisioningDeviceClientRegistrationCallback;
@@ -46,7 +41,7 @@ public class DeviceProvision {
     private ILogger logger;
     private ProvisioningStatus provisioningStatus;
     private ICentralStorage centralStorage;
-    private String deviceKey;
+    private byte[] deviceKey;
 
     public DeviceProvision(String deviceId, String scopeId, IOTC_CONNECT authenticationType, Object options,
             ICentralStorage storage, ILogger logger) {
@@ -93,12 +88,13 @@ public class DeviceProvision {
                 provider = new SecurityProviderX509Cert(x509Certificate.getCertificate(),
                         x509Certificate.getPrivateKey(), new LinkedList<>());
             } else {
-                this.deviceKey = (String) options;
+                this.deviceKey = ((String) options).getBytes();
                 if (this.authenticationType == IOTC_CONNECT.SYMM_KEY
                         && (this.modelId != null && !this.modelId.isEmpty())) {
-                    this.deviceKey = ComputeKey((String) this.options, this.deviceId);
+                    this.deviceKey = SecurityProviderSymmetricKey
+                            .ComputeDerivedSymmetricKey(((String) this.options).getBytes(), this.deviceId);
                 }
-                provider = new SecurityProviderSymmetricKey(deviceKey.getBytes(), this.deviceId);
+                provider = new SecurityProviderSymmetricKey(this.deviceKey, this.deviceId);
             }
             return this._internalRegister(provider);
 
@@ -151,7 +147,7 @@ public class DeviceProvision {
                 storage.setHubName(
                         this.provisioningStatus.provisioningDeviceClientRegistrationInfoClient.getIothubUri());
                 storage.setDeviceId(this.deviceId);
-                if (this.deviceKey != null && !this.deviceKey.isEmpty()) {
+                if (this.deviceKey != null) {
                     storage.setDeviceKey(this.deviceKey);
                 } else {
                     storage.setCertificate((X509Certificate) this.options);
@@ -168,19 +164,6 @@ public class DeviceProvision {
         } catch (Exception e) {
             e.printStackTrace();
             throw new IoTCentralException(e.getMessage());
-        }
-    }
-
-    private String ComputeKey(String masterKey, String registrationId) {
-        try {
-            Mac sha256_hmac = Mac.getInstance("HmacSHA256");
-            byte[] keyBytes = Base64.decodeBase64Local(new String(masterKey).getBytes(StandardCharsets.UTF_8));
-            sha256_hmac.init(new SecretKeySpec(keyBytes, "HmacSHA256"));
-            byte[] regBytes = registrationId.getBytes(StandardCharsets.UTF_8);
-            byte[] res = sha256_hmac.doFinal(regBytes);
-            return Base64.encodeBase64StringLocal(res);
-        } catch (Exception ex) {
-            return null;
         }
     }
 

@@ -13,6 +13,20 @@ Navigate to the sample folder and build if not already done from root folder:
 mvn compile
 ```
 
+### Create configuration file
+Create a file named **"samples.config"** in the sample folder ("iotc-device-samples") close to _pom.xml_.
+Put entries in _"key=value"_ format one for each line.
+Property keys are case sensitive and not all required.
+
+Supported properties:
+- deviceId (required)
+- scopeId (required)
+- groupKey (either this or _deviceKey_)
+- deviceKey (either this or _groupKey_)
+- modelId
+- cert
+- privateKey
+
 ### Run
 
 From samples folder run following commands depending on the sample to run:
