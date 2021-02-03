@@ -30,7 +30,7 @@ _This is the recommended method of including the Azure IoTCentral library in you
 	<dependency>
         <groupId>com.github.lucadruda</groupId>
         <artifactId>iotc-device-client</artifactId>
-        <version>2.0.0</version>
+        <version>2.1.0</version>
 		<!--This is the current version number as of the writing of this document. Yours may be different.-->
 	</dependency>
 ```

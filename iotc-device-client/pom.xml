@@ -19,6 +19,22 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+  <scm>
+    <connection>scm:git:git://github.com/lucadruda/iotc-java-device-client.git</connection>
+    <developerConnection>scm:git:ssh://github.com/lucadruda/iotc-java-device-client.git</developerConnection>
+    <url>http://github.com/lucadruda/iotc-java-device-client/tree/master</url>
+  </scm>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
   <licenses>
     <license>
       <name>MIT License</name>
