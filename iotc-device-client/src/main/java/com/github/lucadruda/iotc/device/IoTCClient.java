@@ -128,6 +128,7 @@ public class IoTCClient implements IIoTCClient {
     @Override
     public void SetProtocol(IOTC_PROTOCOL transport) {
         this.protocol = IotHubClientProtocol.valueOf(transport.name());
+        this.deviceProvision.setProtocol(transport);
         this.logger.Log("Transport set to " + transport);
     }
 
@@ -171,6 +172,7 @@ public class IoTCClient implements IIoTCClient {
             }
             this.listenToC2D();
             this.deviceClient.open();
+            this.connected = true;
             this.subscribe();
 
         } catch (Exception e) {
@@ -184,6 +186,7 @@ public class IoTCClient implements IIoTCClient {
                 }
                 this.listenToC2D();
                 this.deviceClient.open();
+                this.connected = true;
                 this.subscribe();
             } catch (IOException | URISyntaxException ex) {
                 throw new IoTCentralException(e.getMessage());
@@ -438,29 +441,29 @@ public class IoTCClient implements IIoTCClient {
     @Override
     public void on(IOTC_EVENTS event, IoTCCallback callback) {
         switch (event) {
-            case ConnectionStatus:
-                if (!this.events.containsKey(IOTC_EVENTS.ConnectionStatus)) {
-                    this.events.put(IOTC_EVENTS.ConnectionStatus, callback);
-                } else {
-                    this.events.replace(IOTC_EVENTS.ConnectionStatus, callback);
-                }
-                break;
-            case Properties:
-                if (!this.events.containsKey(IOTC_EVENTS.Properties)) {
-                    this.events.put(IOTC_EVENTS.Properties, callback);
-                } else {
-                    this.events.replace(IOTC_EVENTS.Properties, callback);
-                }
-                break;
-            case Commands:
-                if (!this.events.containsKey(IOTC_EVENTS.Commands)) {
-                    this.events.put(IOTC_EVENTS.Commands, callback);
-                } else {
-                    this.events.replace(IOTC_EVENTS.Commands, callback);
-                }
-                break;
-            default:
-                break;
+        case ConnectionStatus:
+            if (!this.events.containsKey(IOTC_EVENTS.ConnectionStatus)) {
+                this.events.put(IOTC_EVENTS.ConnectionStatus, callback);
+            } else {
+                this.events.replace(IOTC_EVENTS.ConnectionStatus, callback);
+            }
+            break;
+        case Properties:
+            if (!this.events.containsKey(IOTC_EVENTS.Properties)) {
+                this.events.put(IOTC_EVENTS.Properties, callback);
+            } else {
+                this.events.replace(IOTC_EVENTS.Properties, callback);
+            }
+            break;
+        case Commands:
+            if (!this.events.containsKey(IOTC_EVENTS.Commands)) {
+                this.events.put(IOTC_EVENTS.Commands, callback);
+            } else {
+                this.events.replace(IOTC_EVENTS.Commands, callback);
+            }
+            break;
+        default:
+            break;
         }
     }
 

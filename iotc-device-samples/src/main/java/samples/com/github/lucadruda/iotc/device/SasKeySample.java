@@ -34,10 +34,11 @@ public class SasKeySample {
 
         @Override
         public Storage retrieve() {
-            // return new
-            // Storage("iotc-1f9e162c-eacc-408d-9fb2-c9926a071037.azure-devices.net",
-            // "javasdkcomponents",
-            // "+yz0YcYq/SEwvaF0UjLNKyrKuL8oyFknTtoEJOfOgTo=".getBytes());
+            /*
+             * Return hardcoded credentials by passing hubname,deviceId and key like below
+             * 
+             * return new Storage("<HubName>","<DeviceId>","<DeviceKey>");
+             */
             return new Storage();
         }
 

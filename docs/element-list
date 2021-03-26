@@ -1,3 +1,4 @@
+android.util
 com.github.lucadruda.iotc.device
 com.github.lucadruda.iotc.device.callbacks
 com.github.lucadruda.iotc.device.enums

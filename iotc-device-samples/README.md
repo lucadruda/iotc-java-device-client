@@ -34,6 +34,10 @@ From samples folder run following commands depending on the sample to run:
 ```sh
 mvn exec:exec -P saskeysample
 ```
+- SASKeyHttps:
+```sh
+mvn exec:exec -P saskeysamplehttps
+```
 - X509:
 ```sh
 mvn exec:exec -P certsample
