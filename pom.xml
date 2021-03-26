@@ -21,24 +21,9 @@
     <properties>
         <iotc-device-client-artifact-id>iotc-device-client</iotc-device-client-artifact-id>
         <iotc-device-samples-artifact-id>iotc-device-samples</iotc-device-samples-artifact-id>
-        <iotc-device-client-version>2.0.0</iotc-device-client-version>
-        <iotc-device-samples-version>2.0.0</iotc-device-samples-version>
+        <iotc-device-client-version>2.1.1</iotc-device-client-version>
+        <iotc-device-samples-version>2.1.1</iotc-device-samples-version>
     </properties>
-    <scm>
-        <connection>scm:git:git://github.com/lucadruda/iotc-java-device-client.git</connection>
-        <developerConnection>scm:git:ssh://github.com/lucadruda/iotc-java-device-client.git</developerConnection>
-        <url>http://github.com/lucadruda/iotc-java-device-client/tree/master</url>
-    </scm>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -48,6 +33,14 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>

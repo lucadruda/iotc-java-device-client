@@ -6,6 +6,12 @@
   <artifactId>iotc-device-client</artifactId>
   <name>Azure IoT Central Java Device Client</name>
   <version>2.1.1</version>
+  <parent>
+    <groupId>com.github.lucadruda</groupId>
+    <artifactId>iotc-device-parent</artifactId>
+    <version>2.1.1</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
   <description>The Azure IoTCentral Device client for Java and Android</description>
   <url>https://github.com/lucadruda/iotc-java-device-client/</url>
   <developers>
