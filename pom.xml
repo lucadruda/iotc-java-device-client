@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.lucadruda</groupId>
     <artifactId>iotc-device-parent</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.2</version>
     <name>Azure IoTCentral Device Parent</name>
     <packaging>pom</packaging>
     <url>https://github.com/lucadruda/iotc-java-device-client</url>
@@ -21,8 +21,8 @@
     <properties>
         <iotc-device-client-artifact-id>iotc-device-client</iotc-device-client-artifact-id>
         <iotc-device-samples-artifact-id>iotc-device-samples</iotc-device-samples-artifact-id>
-        <iotc-device-client-version>2.0.0</iotc-device-client-version>
-        <iotc-device-samples-version>2.0.0</iotc-device-samples-version>
+        <iotc-device-client-version>2.1.2</iotc-device-client-version>
+        <iotc-device-samples-version>2.1.2</iotc-device-samples-version>
     </properties>
     <scm>
         <connection>scm:git:git://github.com/lucadruda/iotc-java-device-client.git</connection>

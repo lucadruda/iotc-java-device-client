@@ -89,8 +89,7 @@ public class DeviceProvision {
                         x509Certificate.getPrivateKey(), new LinkedList<>());
             } else {
                 this.deviceKey = ((String) options).getBytes();
-                if (this.authenticationType == IOTC_CONNECT.SYMM_KEY
-                        && (this.modelId != null && !this.modelId.isEmpty())) {
+                if (this.authenticationType == IOTC_CONNECT.SYMM_KEY) {
                     this.deviceKey = SecurityProviderSymmetricKey
                             .ComputeDerivedSymmetricKey(((String) this.options).getBytes(), this.deviceId);
                 }
