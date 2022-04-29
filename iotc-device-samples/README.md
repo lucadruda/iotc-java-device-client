@@ -5,6 +5,7 @@ This folder contains simple samples showing how to use the various features of t
 - [Send/receive sample with SAS key authentication:](./src/main/java/samples/com/github/lucadruda/iotc/device/SasKeySample.java) Shows how to connect, send telemetry and properties, receive properties and commands and manage credentials cache when authenticating through SAS key (either individual or group key).
 - [Send/receive sample with X509 authentication:](./src/main/java/samples/com/github/lucadruda/iotc/device/X509Sample.java): Shows how to connect, send telemetry and properties, receive properties and commands and manage credentials cache when authenticating through X509 certificates.
 
+- [Android sample](./android): A simple Android application connecting to a device using SAS key authentication and showing information on a logs view.
 ## How to run samples
 
 ### Build
